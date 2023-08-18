@@ -15,6 +15,20 @@ def _check_position(source, pos, pieces: PiecesContainer):
         return  True, True
     raise ValueError("Invalid status position %s" % status)
 
+def _check_collision(source, pos, pieces):
+    status: PositionStatus 
+    status, _ = position_status(source, pos, pieces)
+
+    if status == PositionStatus.OFF:
+        return False, False
+    if status == PositionStatus.ALLY:
+        return True, False
+    if status == PositionStatus.ENEMY:
+        return True, False
+    if status == PositionStatus.EMPTY:
+        return  False, True
+    raise ValueError("Invalid status position %s" % status)
+
 def get_all_moves(query, pieces):
     return {p: p.threatning(pieces) for p in query}
 
@@ -25,17 +39,25 @@ def find_threats(x, y, pieces: PiecesContainer, white=None):
     result = get_all_moves(test_pieces, pieces)
     return [other for other in result if (x,y) in result[other]]
 
-def directions(piece: Piece, vectors, pieces: PiecesContainer, single=False):
+
+
+def directions(piece: Piece, vectors, pieces: PiecesContainer, single=False, check_blocking=False):
+    callback=_check_position
+    if check_blocking:
+        callback = _check_collision
     positions = [(piece.x, piece.y)] * len(vectors)
-    directions = [ (pos, vec, True) for pos, vec in zip(positions, vectors)]
+    directions = [ (pos, vec) for pos, vec in zip(positions, vectors)]
     moves = set()
     while len(directions):
-        directions = [(add_vector(pos, vec), vec, valid) for pos, vec, valid  in directions if valid]
-        checks = [ _check_position(piece, pos, pieces) for pos, vec, valid in  directions]
-        directions =  [ (pos, vec, next_valid) for ((pos, vec, _), (valid, next_valid)) in zip(directions, checks) if valid]
-        for pos, _, _ in directions:
-            moves.add(pos)
-        
+        directions = [(add_vector(pos, vec), vec) for pos, vec  in directions]
+        checks = [ callback(piece, pos, pieces) for pos, vec in  directions]
+        next_directions = []
+        for ((pos, vec), (valid, next_valid)) in zip(directions, checks):
+            if valid:
+                moves.add(pos)
+            if next_valid:
+                next_directions.append((pos,vec))
+        directions = next_directions
         if single:
             break
     

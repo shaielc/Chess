@@ -1,6 +1,7 @@
 
 import time
 from functools import wraps
+from models.history import History, Move
 from models.pieces.bishop import Bishop
 from models.pieces.king import King
 from models.pieces.knight import Knight
@@ -21,7 +22,7 @@ class Board:
         self.pieces: PiecesContainer = PiecesContainer(pieces)
         self.need_to_promote = None
         self.is_checked = None
-        self.moves = []
+        self.moves = History([])
         self.finished = False
 
     def check_promotion(self, pawn: Pawn):
@@ -95,14 +96,19 @@ class Board:
             target_vec = get_direction((king.x, king.y), (piece.x, piece.y))
             if threat_vec != target_vec:
                 continue
-
+            threat_vec = get_direction((threat.x,threat.y),(king.x, king.y))
+            hit = tuple(directions(piece, [threat_vec], self.pieces, check_blocking=True))
+            if len(hit) == 0:
+                continue
+            if self.pieces.locations[hit[0]] != king:
+                continue
             relevant_threats.append(threat)
         
         if len(relevant_threats) == 0:
             return possible_moves
         
         final_moves = []
-        threat = threats[0]
+        threat = relevant_threats[0]
         for m in possible_moves:
             if threat.isin(*m):
                 final_moves.append(m)
@@ -197,7 +203,7 @@ class Board:
         last_pos = piece.x, piece.y
         self.pieces.move(piece, *target)
         
-        self.moves.append(((piece, last_pos,), removed_piece))
+        self.moves.add_move(Move(piece = piece, start=last_pos, end=target, taken=removed_piece))
 
         checks = self.check_for_check()
         if len(checks) == 0:
@@ -225,7 +231,7 @@ class Board:
     def disable_en_passant(self,):
         if len(self.moves) < 2:
             return
-        (p,_),_ = self.moves[-2]
+        p = self.moves[-2].piece
         if p.TYPE != PieceTypes.PAWN:
             return
         p.en_passant = False #
@@ -240,10 +246,11 @@ class Board:
             p.en_passant =True
 
     def revert(self,):
-        (piece, prev,), eaten_piece = self.moves.pop()
-        self.pieces.move(piece, *prev)
-        if eaten_piece is not None:
-            self.pieces.add(eaten_piece)
+        m:Move = self.moves.pop()
+
+        self.pieces.move(m.piece, *m.start)
+        if m.taken is not None:
+            self.pieces.add(m.taken)
         self._revert_en_passant()
     
     def en_passant(self, piece: Pawn, target):
