@@ -30,6 +30,9 @@ class BoardController:
             self.selected_piece = None
         
         return False
+    
+    def get_history(self,):
+        return self.model.moves.moves
 
     def get_eaten_pieces(self, ):
         return self.model.pieces.removed_pieces
