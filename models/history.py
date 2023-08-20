@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+from typing import Union
 from models.pieces.piece import Piece, PieceTypes
 
 piece_abbreviations = {
@@ -19,7 +19,7 @@ class Move:
     piece: Piece
     start: tuple
     end: tuple
-    taken: Piece | None
+    taken: Union[Piece,None]
 
     def __str__(self) -> str:
         text = piece_abbreviations[self.piece.TYPE]

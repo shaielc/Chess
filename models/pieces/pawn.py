@@ -21,7 +21,7 @@ class Pawn(Piece):
         if status == PositionStatus.EMPTY:
             moves.add(basic_move)
         
-        if can_move_doulbe:
+        if can_move_doulbe and basic_move in moves:
             status, _ = position_status(self, double_move, pieces)
             if status == PositionStatus.EMPTY:
                 moves.add(double_move)
