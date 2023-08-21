@@ -1,7 +1,10 @@
+from models.events import Event, EventSourceType, EventType
 from view.board import BoardView
 from controller.board import BoardController
 from view.histoty import HistoryView
 from view.promotion import PromotionView
+
+
 
 class GameView:
     def __init__(self, board: BoardView, promotion: PromotionView, history: HistoryView) -> None:
@@ -24,3 +27,11 @@ class GameView:
         if pos not in self.promotion:
             return None
         return self.promotion.screen_to_game(pos)
+    
+    def handle_click(self, click_pos):
+        pos = self.screen_to_board(click_pos)
+        if pos is not None:
+            return Event(EventType.BOARD, EventSourceType.UI, pos)
+        piece = self.screen_to_promotion(click_pos)
+        if piece is not None:
+            return Event(EventType.PROMOTION, EventSourceType.UI, piece)

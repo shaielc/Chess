@@ -1,26 +1,30 @@
 import pygame
 from controller.board import BoardController
-from view.game import GameView
+from models.events import Event, EventType
 from time_func import timeit
+from enum import Enum
+
+class Player(Enum):
+    HUMAN=0
+    AI=1
 
 
 class GameController:
-    def __init__(self, board: BoardController, view: GameView) -> None:
+    def __init__(self, board: BoardController, players: dict[bool, Player]) -> None:
         self.board = board
-        self.view = view
         self.white = True
+        self.players = players
     
     @timeit
-    def handle_click(self, click_pos):
-        pos = self.view.screen_to_board(click_pos)
-        if pos is not None:
+    def handle_event(self, event: Event):
+        if self.players[self.white].value != event.source.value:
+            return
+        if event.event_type == EventType.BOARD:
+            pos = event.payload
             turn = self.board.handle_location_event(pos, self.white)
             if turn:
                 self.white = not self.white
             return
-        piece = self.view.screen_to_promotion(click_pos)
-        if piece is not None:
+        if event.event_type == EventType.PROMOTION:
+            piece = event.payload
             self.board.promote(piece)
-
-    def update_view(self, screen):
-        self.view.update(screen, self.board)
