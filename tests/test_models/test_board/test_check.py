@@ -24,6 +24,14 @@ def test_checkmate_queen():
     assert(k in checks)
     assert(board.check_for_endgame(False) == True)
 
+def test_checkmate_queen_def():
+    k = King(7,7,white=False)
+    board = Board([Queen(5,5,white=True), Queen(6,6,white=True), k])
+    checks = board.check_for_check()
+    assert(len(checks) == 1)
+    assert(k in checks)
+    assert(board.check_for_endgame(False) == True)
+
 def test_checkmate_pawn_def():
     k = King(0,0,white=False)
     board = Board([Pawn(2,2,white=True), Queen(1,1,white=True), k])
