@@ -33,7 +33,7 @@ def update(screen, clock , game: GameController):
         if event.type == pygame.QUIT:
             return False
         if event.type == pygame.MOUSEBUTTONUP:
-            game.handle_click()
+            game.handle_click(click_pos=pygame.mouse.get_pos())
     
     game.update_view(screen)
     clock.tick()

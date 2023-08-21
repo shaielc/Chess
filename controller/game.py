@@ -11,8 +11,7 @@ class GameController:
         self.white = True
     
     @timeit
-    def handle_click(self, ):
-        click_pos = pygame.mouse.get_pos()
+    def handle_click(self, click_pos):
         pos = self.view.screen_to_board(click_pos)
         if pos is not None:
             turn = self.board.handle_location_event(pos, self.white)
