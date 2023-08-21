@@ -8,6 +8,9 @@ class Pawn(Piece):
         self.can_eat = {}
         super().__init__(x, y, white)
 
+    def _get_moves(self, pieces: PiecesContainer, check_type: dict) -> list:
+        pass
+
     def valid_moves(self, pieces: PiecesContainer) -> list:
         
         direction =(1-2*self.white)
@@ -26,10 +29,10 @@ class Pawn(Piece):
             if status == PositionStatus.EMPTY:
                 moves.add(double_move)
         
-        moves.update(self.threatning(pieces, exclude_empty=True))
+        moves.update(self.threatning(pieces, exclude_empty=True, include_ally=False))
         return moves
 
-    def threatning(self, pieces: PiecesContainer, exclude_empty=False) -> list:
+    def threatning(self, pieces: PiecesContainer, exclude_empty=False, include_ally=True) -> list:
         direction = (1-2*self.white)
         possible_moves = {(self.x+1, self.y+ direction), (self.x-1, self.y+ direction)}
         moves = set()
@@ -39,6 +42,8 @@ class Pawn(Piece):
                 moves.add(m)
                 self.can_eat[m] = piece
             if status == PositionStatus.EMPTY and not exclude_empty:
+                moves.add(m)
+            if include_ally and status == PositionStatus.ALLY:
                 moves.add(m)
         
         moves.update(self.check_en_passant(pieces))

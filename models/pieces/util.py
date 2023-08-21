@@ -1,33 +1,56 @@
 
-from models.pieces.piece import Piece, DIAG_VECS, STRAIGHT_VECS, KNIGHT_MOVES, PieceTypes, PiecesContainer
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from models.pieces.piece import Piece, PiecesContainer
 from enum import Enum
 from time_func import timeit
 
-def _check_position(source, pos, pieces: PiecesContainer):
-    status: PositionStatus 
+class PositionStatus(Enum):
+    OFF=0
+    EMPTY=1
+    ALLY=2
+    ENEMY=3
+
+def position_status(source: Piece, pos, pieces: PiecesContainer):
+    x,y = pos
+    if not on_board(x,y):
+        return PositionStatus.OFF, None
+
+    piece = pieces.locations.get((x,y))
+    if piece is None:
+        return PositionStatus.EMPTY, None
+    
+    if piece.same_color(source):
+        return PositionStatus.ALLY, piece
+    else:
+        return PositionStatus.ENEMY, piece
+
+
+def get_status(source, pos, pieces):
     status, _ = position_status(source, pos, pieces)
+    return status
 
-    if status == PositionStatus.OFF or status == PositionStatus.ALLY:
-        return False, False
-    if status == PositionStatus.ENEMY:
-        return True, False
-    if status == PositionStatus.EMPTY:
-        return  True, True
-    raise ValueError("Invalid status position %s" % status)
+status_check_position = {
+    PositionStatus.OFF: (False, False),
+    PositionStatus.ALLY: (False,False),
+    PositionStatus.ENEMY: (True, False),
+    PositionStatus.EMPTY: (True, True)
+}
 
-def _check_collision(source, pos, pieces):
-    status: PositionStatus 
-    status, _ = position_status(source, pos, pieces)
+status_check_collision = {
+    PositionStatus.OFF: (False, False),
+    PositionStatus.ALLY: (True,False),
+    PositionStatus.ENEMY: (True, False),
+    PositionStatus.EMPTY: (False, True)
+}
 
-    if status == PositionStatus.OFF:
-        return False, False
-    if status == PositionStatus.ALLY:
-        return True, False
-    if status == PositionStatus.ENEMY:
-        return True, False
-    if status == PositionStatus.EMPTY:
-        return  False, True
-    raise ValueError("Invalid status position %s" % status)
+status_check_threatning = {
+    PositionStatus.OFF: (False, False),
+    PositionStatus.ALLY: (True,False),
+    PositionStatus.ENEMY: (True, False),
+    PositionStatus.EMPTY: (True, True)
+}
 
 def get_all_moves(query, pieces):
     return {p: p.threatning(pieces) for p in query}
@@ -41,16 +64,16 @@ def find_threats(x, y, pieces: PiecesContainer, white=None):
 
 
 
-def directions(piece: Piece, vectors, pieces: PiecesContainer, single=False, check_blocking=False):
-    callback=_check_position
-    if check_blocking:
-        callback = _check_collision
+def directions(piece: Piece, vectors, pieces: PiecesContainer, single=False, status_state=None):
+    if status_state is None:
+        status_state=status_check_position
     positions = [(piece.x, piece.y)] * len(vectors)
     directions = [ (pos, vec) for pos, vec in zip(positions, vectors)]
     moves = set()
     while len(directions):
         directions = [(add_vector(pos, vec), vec) for pos, vec  in directions]
-        checks = [ callback(piece, pos, pieces) for pos, vec in  directions]
+        statuses = [ get_status(piece, pos, pieces) for pos, vec in  directions]
+        checks = [status_state[status] for status in statuses]
         next_directions = []
         for ((pos, vec), (valid, next_valid)) in zip(directions, checks):
             if valid:
@@ -73,22 +96,3 @@ def on_board(x,y):
         return False
     return True
 
-class PositionStatus(Enum):
-    OFF=0
-    EMPTY=1
-    ALLY=2
-    ENEMY=3
-
-def position_status(source: Piece, pos, pieces: PiecesContainer):
-    x,y = pos
-    if not on_board(x,y):
-        return PositionStatus.OFF, None
-
-    piece = pieces.locations.get((x,y))
-    if piece is None:
-        return PositionStatus.EMPTY, None
-    
-    if piece.same_color(source):
-        return PositionStatus.ALLY, piece
-    else:
-        return PositionStatus.ENEMY, piece

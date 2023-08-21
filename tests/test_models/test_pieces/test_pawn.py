@@ -36,11 +36,20 @@ def test_pawn_blocked_move():
     assert(len(moves) == 1)
     assert((0,5) in moves)
 
-def test_pawn_threatning():
+def test_pawn_can_take():
     piece = Pawn(0,5)
     moves = piece.threatning(PiecesContainer([]), exclude_empty=True)
     assert(len(moves) == 0)
 
+    piece = Pawn(1,5)
+    piece_ally = Pawn(2,4)
+    piece_enemy = Pawn(0,4, white=False)
+    moves = piece.threatning(PiecesContainer([piece_ally, piece_enemy]), exclude_empty=True, include_ally=False)
+    assert(len(moves) == 1)
+    assert((0,4) in moves)
+
+def test_pawn_threatning():
+    piece = Pawn(0,5)
     moves = piece.threatning(PiecesContainer([]), exclude_empty=False)
     assert(len(moves) == 1)
     assert((1,4) in moves)
@@ -54,9 +63,11 @@ def test_pawn_threatning():
     piece = Pawn(1,5)
     piece_ally = Pawn(2,4)
     piece_enemy = Pawn(0,4, white=False)
-    moves = piece.threatning(PiecesContainer([piece_ally, piece_enemy]), exclude_empty=True)
-    assert(len(moves) == 1)
+    moves = piece.threatning(PiecesContainer([piece_ally, piece_enemy]), exclude_empty=False, include_ally=True)
+    assert(len(moves) == 2)
     assert((0,4) in moves)
+    assert((2,4) in moves)
+
 
 def test_pawn_allow_en_passant():
     piece = Pawn(1,1, white=False)

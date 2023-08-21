@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
-from time_func import timeit
+from models.pieces.util import status_check_position, status_check_threatning
 
 class PiecesContainer:
     def __init__(self, piece_list) -> None:
@@ -57,13 +57,19 @@ class Piece(ABC):
         self.x = x
         self.y = y
         self.white = white
+
     
-    @abstractmethod
-    def valid_moves(self, pieces: list) -> list:
-        raise NotImplemented("Using abstract class Piece")
+    def valid_moves(self, pieces: PiecesContainer) -> list:
+        moves = self._get_moves(pieces, check_type=status_check_position)
+        return moves
     
     def threatning(self, pieces: list) -> list:
-        return self.valid_moves(pieces)
+        moves = self._get_moves(pieces, check_type=status_check_threatning)
+        return moves
+    
+    @abstractmethod
+    def _get_moves(self, pieces: PiecesContainer, check_type: dict) -> list:
+        raise NotImplemented("Using abstract class Piece")
     
     def __repr__(self) -> str:
         return "<%s (%s,%d)>" % (self.TYPE, chr(ord('A') + self.x), self.y)

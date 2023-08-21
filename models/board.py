@@ -1,6 +1,7 @@
 
 import time
 from functools import wraps
+from models.pieces.piece import PiecesContainer
 from models.history import History, Move
 from models.pieces.bishop import Bishop
 from models.pieces.king import King
@@ -9,7 +10,7 @@ from models.pieces.pawn import Pawn
 from models.pieces.piece import Piece, PieceTypes, DIAG_VECS, STRAIGHT_VECS, KNIGHT_MOVES
 from models.pieces.queen import Queen
 from models.pieces.rook import Rook
-from models.pieces.util import PiecesContainer, directions, find_threats, position_status, PositionStatus
+from models.pieces.util import directions, find_threats, position_status, PositionStatus, status_check_collision
 import math
 
 def get_direction(a, b):
@@ -97,7 +98,7 @@ class Board:
             if threat_vec != target_vec:
                 continue
             threat_vec = get_direction((threat.x,threat.y),(king.x, king.y))
-            hit = tuple(directions(piece, [threat_vec], self.pieces, check_blocking=True))
+            hit = tuple(directions(piece, [threat_vec], self.pieces, status_state=status_check_collision))
             if len(hit) == 0:
                 continue
             if self.pieces.locations[hit[0]] != king:
@@ -161,8 +162,10 @@ class Board:
             return self._get_valid_check_move_other( self.is_checked, possible_moves, threats)
         
         threats = find_threats(piece.x, piece.y , self.pieces, piece.white)
-        king = self.pieces.filter_by_type(PieceTypes.KING).filter_by_player(piece.white).pieces[0]
-        return self._get_valid_moves_other(piece, king, possible_moves, threats)
+        kings = self.pieces.filter_by_type(PieceTypes.KING).filter_by_player(piece.white).pieces
+        if len(kings) == 0:
+            return possible_moves # NOTE: inidication of bad design
+        return self._get_valid_moves_other(piece, kings[0], possible_moves, threats)
 
     
     def check_for_endgame(self, white):
