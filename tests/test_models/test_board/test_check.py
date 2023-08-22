@@ -104,3 +104,9 @@ def test_stalemate():
     checks = board.check_for_check()
     assert(len(checks) == 0)
     assert(board.check_for_endgame(False) == True)
+
+def test_two_kings_stalemate():
+    board = Board([King(5,5,white=True), King(7,7,white=False)])
+    checks = board.check_for_check()
+    assert(len(checks) == 0)
+    assert(board.check_for_endgame(False) == True)

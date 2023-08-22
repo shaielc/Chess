@@ -36,7 +36,9 @@ class PiecesContainer:
     
     def __iter__(self, ) -> list[Piece]:
         return iter(self.pieces)
-
+    
+    def __len__(self,):
+        return len(self.pieces)
 
 STRAIGHT_VECS = [(0,1), (1,0), (-1,0), (0,-1)]
 DIAG_VECS = [(1,1), (-1,1), (-1,-1), (1,-1)]

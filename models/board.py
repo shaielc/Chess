@@ -172,9 +172,12 @@ class Board:
     
     def check_for_endgame(self, white):
         player_pieces = self.pieces.filter_by_player(white)
+        if len(self.pieces) == 2:
+            return True
         for p in player_pieces:
             if len(self.get_valid_moves(p)) > 0:
                 return False
+        
         return True
     
     def move(self, piece: Piece, target):
