@@ -3,6 +3,7 @@ from enum import Enum
 class EventType(Enum):
     BOARD=0
     PROMOTION=1
+    MOVE=2
 
 class EventSourceType(Enum):
     UI=0

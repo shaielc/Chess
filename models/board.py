@@ -58,17 +58,19 @@ class Board:
 
 
     def _get_valid_check_move_other(self, king, possible_moves, threats):
+        final_moves = set()
+        
         if len(threats) > 1:
-            return []
+            return final_moves
                 
         filt = directions(king, DIAG_VECS + STRAIGHT_VECS, self.pieces)
         filt.update(directions(king, KNIGHT_MOVES, self.pieces, True))
         filtered_moves = [m for m in possible_moves if m in filt]
-        final_moves = []
+        
         threat = threats[0]
         for m in filtered_moves:
             if threat.isin(*m):
-                final_moves.append(m)
+                final_moves.add(m)
                 continue
             if threat.TYPE == PieceTypes.KNIGHT:
                 continue
@@ -79,7 +81,7 @@ class Board:
             if threat_vec != target_vec:
                 continue
             
-            final_moves.append(m)
+            final_moves.add(m)
                 
         return final_moves
     
@@ -252,7 +254,9 @@ class Board:
     def _revert_en_passant(self, ):
         if len(self.moves) == 0:
             return
-        (p,prev),_ = self.moves[-1]
+        m: Move = self.moves.pop()
+        p = m.piece
+        prev = m.start
         if p.TYPE != PieceTypes.PAWN:
             return
         if abs(p.y - prev[1]) == 2:
@@ -264,7 +268,7 @@ class Board:
         self.pieces.move(m.piece, *m.start)
         if m.taken is not None:
             self.pieces.add(m.taken)
-        self._revert_en_passant()
+        # self._revert_en_passant()
     
     def en_passant(self, piece: Pawn, target):
         if piece.apply_en_passant(target):

@@ -2,7 +2,8 @@ import pygame
 from view.board import BoardView
 from view.game import GameView
 from controller.board import BoardController
-from controller.game import GameController, Player
+from controller.game import GameController
+from models.player import PlayerType
 from models.board import Board
 from view.histoty import HistoryView
 from view.promotion import PromotionView
@@ -17,7 +18,7 @@ def init_board(width, height, screen):
     history_view = HistoryView(board_size, board_size//8, width-board_size, height - board_size//4, BG_COLOR)
     board_model = Board.default_board()
     game_view = GameView(board_view, promotion_view, history_view)
-    return GameController(BoardController(board_model), players= {True: Player.HUMAN, False: Player.HUMAN}), game_view
+    return GameController(BoardController(board_model), players= {True: PlayerType.AI, False: PlayerType.AI}), game_view
 
 def init_gui(width, height):
     pygame.init()
@@ -34,9 +35,10 @@ def update(screen, clock , game: GameController, ui: GameView):
             return False
         if event.type == pygame.MOUSEBUTTONUP:
             event = ui.handle_click(click_pos=pygame.mouse.get_pos())
-            game.handle_event(event)
+            game.add_event(event)
     
     ui.update(screen, game.board)
+    game.handle_next()
     clock.tick()
     pygame.display.update()
     return True

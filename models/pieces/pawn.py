@@ -11,7 +11,7 @@ class Pawn(Piece):
     def _get_moves(self, pieces: PiecesContainer, check_type: dict) -> list:
         pass
 
-    def valid_moves(self, pieces: PiecesContainer) -> list:
+    def valid_moves(self, pieces: PiecesContainer) -> set:
         
         direction =(1-2*self.white)
         basic_move = (self.x, self.y+direction)

@@ -1,5 +1,6 @@
 from models.board import Board
 from view.board import BoardView
+from models.pieces.piece import Piece
 
 class BoardController:
     def __init__(self, model: Board) -> None:
@@ -14,10 +15,11 @@ class BoardController:
         x,y = pos
         
         if self.selected_piece is not None:
-            if self.model.move(self.selected_piece, (x,y)):
+            result = self._move(self.selected_piece, x, y)
+            if result is not None:
                 self.selected_piece = None
-                self.en_passant = None
-                return True
+                return result
+            return False
                 
         found = False
         for p in self.model.pieces:
@@ -29,6 +31,20 @@ class BoardController:
         if not found:
             self.selected_piece = None
         
+        return False
+    
+    def _move(self, piece, x, y):
+        if self.model.move(piece, (x,y)):
+            if self.model.need_to_promote is None:
+                return True
+            return False
+    
+    def handle_move_event(self, piece: Piece, pos, white=True):
+        if piece.white != white:
+            return
+        result = self._move(piece, *pos)
+        if result is not None:
+            return result
         return False
     
     def get_history(self,):

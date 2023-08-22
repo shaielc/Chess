@@ -59,16 +59,16 @@ class Piece(ABC):
         self.white = white
 
     
-    def valid_moves(self, pieces: PiecesContainer) -> list:
+    def valid_moves(self, pieces: PiecesContainer) -> set:
         moves = self._get_moves(pieces, check_type=status_check_position)
         return moves
     
-    def threatning(self, pieces: list) -> list:
+    def threatning(self, pieces: list) -> set:
         moves = self._get_moves(pieces, check_type=status_check_threatning)
         return moves
     
     @abstractmethod
-    def _get_moves(self, pieces: PiecesContainer, check_type: dict) -> list:
+    def _get_moves(self, pieces: PiecesContainer, check_type: dict) -> set:
         raise NotImplemented("Using abstract class Piece")
     
     def __repr__(self) -> str:
