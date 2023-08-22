@@ -202,9 +202,19 @@ class Board:
             if other is not None:
                 self.pieces.remove(other)
                 removed_piece = other
-        
         last_pos = piece.x, piece.y
-        self.pieces.move(piece, *target)
+        
+        if piece.TYPE == PieceTypes.KING and target in piece.castle:
+            # NOTE: bad design indication
+            rook: Rook = piece.castle[target]
+            self.pieces.remove(rook)
+            self.pieces.move(piece, *target)
+            self.pieces.add(rook)
+        else:
+            self.pieces.move(piece, *target)
+
+
+
         
         self.moves.add_move(Move(piece = piece, start=last_pos, end=target, taken=removed_piece))
 
