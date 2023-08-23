@@ -4,7 +4,7 @@ from models.events import Event, EventSourceType, EventType
 from models.pieces.queen import Queen
 import random
 
-class SimpleAI(AI):
+class RandomAI(AI):
     """definitly not an AI - returns random moves, always promotes to queen.
     """
     def calc_move(self, board: Board):

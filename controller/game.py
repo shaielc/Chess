@@ -1,5 +1,5 @@
 from controller.board import BoardController
-from models.AI.simple import SimpleAI
+from models.AI.random import RandomAI
 from models.events import Event, EventType
 from time_func import timeit
 from models.player import Player, PlayerType
@@ -17,7 +17,7 @@ class GameController:
         if player_type == PlayerType.HUMAN:
             return Player()
         elif player_type == PlayerType.AI:
-            return SimpleAI(white=white)
+            return RandomAI(white=white)
     
     @property
     def current_player(self,):
