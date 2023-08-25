@@ -29,7 +29,7 @@ def init_gui(width, height):
     pygame.display.update()
     return screen, clock, board, ui
 
-def update(screen, clock , game: GameController, ui: GameView):
+def update(screen, clock : pygame.time.Clock, game: GameController, ui: GameView):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return False
@@ -39,7 +39,7 @@ def update(screen, clock , game: GameController, ui: GameView):
     
     ui.update(screen, game.board)
     game.handle_next()
-    clock.tick()
+    clock.tick(15)
     pygame.display.update()
     return True
 
