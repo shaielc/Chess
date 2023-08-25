@@ -3,6 +3,7 @@ from models.events import Event, EventSourceType, EventType
 from models.pieces.piece import PiecesContainer
 from models.player import PlayerType
 from abc import ABC, abstractmethod
+from time_func import timeit
 
 class AI(ABC):
     TYPE=PlayerType.AI
@@ -30,6 +31,34 @@ class AI(ABC):
     
     def promotion(self, piece):
         self.event = Event(EventType.PROMOTION, EventSourceType.AI, piece)
+
+    def get_possible_moves(self, board: Board):
+        relevant_pieces = board.pieces.filter_by_player(self.white)
+        possible_moves = {}
+        for p in relevant_pieces:
+            piece_moves = board.get_valid_moves(p)
+            if len(piece_moves) > 0:
+                possible_moves[p] = piece_moves
+        return possible_moves
+    
+    def get_pressure(self, board):
+        relevant_pieces = board.pieces.filter_by_player(self.white)
+        threats = {}
+        for p in relevant_pieces:
+            _threats = p.threatning(board.pieces)
+            if len(_threats):
+                threats[p] = _threats
+        return threats
+    
+    def get_threats(self, board: Board):
+        relevant_pieces = board.pieces.filter_by_player(not self.white)
+        threats = {}
+        for p in relevant_pieces:
+            _threats = p.threatning(board.pieces)
+            if len(_threats):
+                threats[p] = _threats
+        return threats
+
 
     @abstractmethod
     def calc_move(self, board: Board):

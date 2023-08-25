@@ -13,6 +13,8 @@ from models.pieces.rook import Rook
 from models.pieces.util import directions, find_threats, position_status, PositionStatus, status_check_collision
 import math
 
+from time_func import timeit
+
 def get_direction(a, b):
     vec = (b[0]- a[0], b[1] - a[1])
     gcd = math.gcd(*vec)
@@ -25,6 +27,9 @@ class Board:
         self.is_checked = None
         self.moves = History([])
         self.finished = False
+        checks = self.check_for_check()
+        if len(checks) > 0:
+            self.is_checked = checks[0]
 
     def check_promotion(self, pawn: Pawn):
         return pawn.can_promote()
@@ -65,7 +70,7 @@ class Board:
                 
         filt = directions(king, DIAG_VECS + STRAIGHT_VECS, self.pieces)
         filt.update(directions(king, KNIGHT_MOVES, self.pieces, True))
-        filtered_moves = [m for m in possible_moves if m in filt]
+        filtered_moves = {m for m in possible_moves if m in filt}
         
         threat = threats[0]
         for m in filtered_moves:
@@ -110,11 +115,11 @@ class Board:
         if len(relevant_threats) == 0:
             return possible_moves
         
-        final_moves = []
+        final_moves = set()
         threat = relevant_threats[0]
         for m in possible_moves:
             if threat.isin(*m):
-                final_moves.append(m)
+                final_moves.add(m)
                 continue
             if threat.TYPE == PieceTypes.KNIGHT:
                 continue
@@ -125,7 +130,7 @@ class Board:
             if threat_vec != target_vec:
                 continue
 
-            final_moves.append(m)
+            final_moves.add(m)
         
         return final_moves
         
@@ -161,7 +166,7 @@ class Board:
             return self._get_valid_moves_king(piece, possible_moves)
         if self.is_checked is not None:
             threats = find_threats(self.is_checked.x, self.is_checked.y, self.pieces, piece.white)
-            return self._get_valid_check_move_other( self.is_checked, possible_moves, threats)
+            possible_moves = self._get_valid_check_move_other( self.is_checked, possible_moves, threats)
         
         threats = find_threats(piece.x, piece.y , self.pieces, piece.white)
         kings = self.pieces.filter_by_type(PieceTypes.KING).filter_by_player(piece.white).pieces
@@ -217,9 +222,6 @@ class Board:
             self.pieces.add(rook)
         else:
             self.pieces.move(piece, *target)
-
-
-
         
         self.moves.add_move(Move(piece = piece, start=last_pos, end=target, taken=removed_piece))
 
@@ -234,14 +236,13 @@ class Board:
                 self.revert()
                 return False
             self.is_checked = checks[0]
-
-        self.finished = self.check_for_endgame(not piece.white)
-
+        
         if piece.TYPE == PieceTypes.PAWN and self.check_promotion(piece):
             self.need_to_promote = piece
         else:
             self.need_to_promote = None
-        
+            self.finished = self.check_for_endgame(not piece.white)
+
         self.disable_en_passant()
 
         return True

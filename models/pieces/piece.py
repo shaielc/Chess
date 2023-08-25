@@ -33,6 +33,9 @@ class PiecesContainer:
     
     def filter_by_player(self, white=True) -> PiecesContainer:
         return PiecesContainer([p for p in self.pieces if white == p.white])
+
+    def filter_piece(self, piece):
+        return PiecesContainer([p for p in self.pieces if p != piece])
     
     def __iter__(self, ) -> list[Piece]:
         return iter(self.pieces)
@@ -45,12 +48,12 @@ DIAG_VECS = [(1,1), (-1,1), (-1,-1), (1,-1)]
 KNIGHT_MOVES = [(2,1), (2,-1), (-2,1), (-2,-1), (-1,2), (1,2), (-1,-2), (1,-2)]
 
 class PieceTypes(Enum):
-    PAWN = 0
-    BISHOP = 1
-    KNIGHT=2
-    ROOK=4
-    QUEEN=8
-    KING=16
+    PAWN = 1
+    BISHOP = 2
+    KNIGHT=4
+    ROOK=8
+    QUEEN=16
+    KING=32
 
 
 class Piece(ABC):
@@ -81,6 +84,10 @@ class Piece(ABC):
     
     def same_color(self, other):
         return self.white == other.white
+    
+    @classmethod
+    def threats_in_position(cls, x, y, white, pieces: PiecesContainer, ignore: Piece):
+        return cls(x,y, white).threatning(pieces.filter_piece(ignore))
     
     def move(self, x, y):
         self.x = x

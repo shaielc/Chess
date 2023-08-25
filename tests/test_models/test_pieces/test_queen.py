@@ -44,3 +44,10 @@ def test_queen_blocked_enemy():
     assert((6,4) in moves)
     assert((4,7) in moves)
     assert((4,0) in moves)
+
+def test_queen_threats():
+    queen = Queen(0,0)
+    enemy = Queen(0,1, white=False)
+    board = PiecesContainer([queen,enemy])
+    threats = queen.threatning(board)
+    assert((0,1) in threats)

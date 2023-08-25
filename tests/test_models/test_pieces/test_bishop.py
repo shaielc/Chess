@@ -27,4 +27,34 @@ def test_bishop_blocked():
     assert((1,7) not in moves)
     assert(len(moves) == 11)
     
-    
+
+def test_bishop_threatning_empty():
+    bishop = Bishop(4,4)
+    threats = bishop.threatning(PiecesContainer([]))
+    assert(len(threats) == 13)
+    assert((0,0) in threats)
+    assert((7,7) in threats)
+    assert((7,1) in threats)
+    assert((1,7) in threats)
+
+def test_bishop_threatning_enemy():
+    bishop = Bishop(4,4)
+    threats = bishop.threatning(PiecesContainer([Bishop(5,5, white=False)]))
+    assert(len(threats) == 11)
+    assert((0,0) in threats)
+    assert((5,5) in threats)
+    assert((6,6) not in threats)
+    assert((7,7) not in threats)
+    assert((7,1) in threats)
+    assert((1,7) in threats)
+
+def test_bishop_defending():
+    bishop = Bishop(4,4)
+    threats = bishop.threatning(PiecesContainer([Bishop(5,5), Bishop(6,6,white=False)]))
+    assert(len(threats) == 11)
+    assert((0,0) in threats)
+    assert((5,5) in threats)
+    assert((6,6) not in threats)
+    assert((7,7) not in threats)
+    assert((7,1) in threats)
+    assert((1,7) in threats)

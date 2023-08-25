@@ -110,3 +110,23 @@ def test_two_kings_stalemate():
     checks = board.check_for_check()
     assert(len(checks) == 0)
     assert(board.check_for_endgame(False) == True)
+
+def test_blocked_piece_and_check():
+    bishop = Bishop(6,7,white=False)
+    board = Board([King(7,7, white=False), Rook(4,7), Rook(7,4), bishop])
+    checks = board.check_for_check()
+    assert(len(checks) == 1)
+    possible_moves = board.get_valid_moves(bishop)
+    assert(len(possible_moves) == 0)
+
+def test_promote_checkmate():
+    pawn = Pawn(4,1)
+    board = Board([Queen(2,1,), King(0,0, white=False), pawn])
+    assert(board.check_for_endgame(False) == True)
+    board.move(pawn, (4,0))
+    assert(board.check_for_endgame(False) == True)
+    assert(board.finished == False)
+    board.promote(Queen(4,0))
+    assert(board.check_for_endgame(False) == True)
+    assert(board.finished == True)
+    

@@ -68,8 +68,10 @@ class Pawn(Piece):
 
         return moves
 
-    def can_promote(self,):
-        return self.y == (0 if self.white else 7)
+    def can_promote(self, y=None):
+        if y is None:
+            y = self.y
+        return y == (0 if self.white else 7)
 
     def apply_en_passant(self, target):
         p = self.can_eat.get(target)
