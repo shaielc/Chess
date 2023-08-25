@@ -28,7 +28,7 @@ class WinnerView:
 
 class BoardView:
     WHITE = (200, 200, 200)
-    BLACK = (25, 25, 25)
+    BLACK = (50, 50, 50)
     
     def __init__(self, width, height) -> None:
         self.square_size = min(width,height)//8
