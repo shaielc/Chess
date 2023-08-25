@@ -19,7 +19,6 @@ class BoardController:
             if result is not None:
                 self.selected_piece = None
                 return result
-            return False
                 
         found = False
         for p in self.model.pieces:
