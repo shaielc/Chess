@@ -19,23 +19,27 @@ def cmp(x,y):
 
 class Threats:
     def __init__(self, threats: dict[Piece, set]) -> None:
-        self.threats = defaultdict(int)
+        self.threats = defaultdict(set)
         super().__init__()
-        for moves in threats.values():
-            self += moves
-    
-    def __iadd__(self, moves: set):
-        for move in moves:
-            self.threats[move] += 1
+        self += threats
+
+    def __iadd__(self, threats: dict[Piece, set]):
+        for piece, moves in threats.items():
+            for move in moves:
+                self.threats[move].add(piece)
         return self
     
-    def __isub__(self, moves: set):
-        for move in moves:
-            self.threats[move] -= 1
+    def __isub__(self, threats: dict[Piece, set]):
+        for piece, moves in threats.items():
+            for move in moves:
+                self.threats[move].remove(piece)
         return self
     
     def __contains__(self, other):
-        return other in self.threats  and self.threats[other] > 0
+        return other in self.threats  and len(self.threats[other]) > 0
+    
+    def __getitem__(self, move):
+        return self.threats[move]
 
 class GreedyAI(AI):
     """Greedy AI - evaluates best current move, without considering future moves
@@ -46,9 +50,7 @@ class GreedyAI(AI):
             self.promotion(Queen(p.x,p.y,p.white))
             return True
         
-        threats = set()
-        for t in self.get_threats(board).values():
-            threats.update(t)
+        threats = Threats(self.get_threats(board))
         possible_moves: dict[Piece, set] = self.get_possible_moves(board)
         pressure_points = Threats(self.get_pressure(board))
         kings = {k.white: k for k in board.pieces.filter_by_type(PieceTypes.KING)}
@@ -94,42 +96,61 @@ class GreedyAI(AI):
                 king_freedom -= position in threats
         return king_freedom
 
+    @staticmethod
+    def get_threatened_score(piece, move, target, threats, pressure_points):
+        if move not in threats:
+            return 0
+        
+        if target is None and move not in pressure_points:
+            return -piece.TYPE.value
+
+        threatning_pieces = threats[move]
+        lowet_rank_threat = min(threatning_pieces, key=lambda piece: piece.TYPE.value)
+        
+        if lowet_rank_threat.TYPE.value < piece.TYPE.value:
+            return -piece.TYPE.value
+        return 0
+    
+
     def rank(self, piece: Piece, move: tuple[int,int], threats, target: Piece, kings: dict[bool, King], pieces, pressure_points):
         new_threats = piece.threats_in_position(*move, piece.white, pieces, piece)
         if piece.TYPE == PieceTypes.PAWN and piece.can_promote(move[1]):
             new_threats = Queen.threats_in_position(*move, piece.white, pieces, piece)
         current_threats = piece.threatning(pieces)
+        other_king = kings[not self.white]
+        current_king_freedom = self.king_freedom(other_king, pressure_points, pieces)
         
         target_score = 0
         if target is not None:
-            target_score = target.TYPE.value +1
-        if target_score < piece.TYPE.value + 1 and move in threats:
+            target_score = target.TYPE.value
+        if target_score < piece.TYPE.value and move in threats:
             target_score = 0
         piece_score = piece.TYPE.value+1 if piece.TYPE != PieceTypes.KING else -500
         move_score = self.position_score(move[0], move[1], piece.TYPE)**2
-        move_threatened = 0
-        if move in threats:
-            move_threatened = -piece.TYPE.value
+        
+        pressure_points -= {piece: current_threats}
+        move_threatened = self.get_threatened_score(piece, move, target, threats, pressure_points)
+        
+        
         position_score = self.position_score(piece.x, piece.y, piece.TYPE)**2
         position_threatened = 0
-        if (piece.x, piece.y) in threats:
+        position = (piece.x, piece.y)
+        if position in threats and position not in pressure_points:
             position_threatened = piece.TYPE.value
-        other_king = kings[not self.white]
+        
         can_check = (other_king.x, other_king.y) in new_threats
-        current_king_freedom = self.king_freedom(other_king, pressure_points, pieces)
-        pressure_points -= current_threats
-        pressure_points += new_threats
+        
+        pressure_points += {piece: new_threats}
         new_king_freedom = self.king_freedom(other_king, pressure_points, pieces)
-        pressure_points -= new_threats
-        pressure_points += current_threats
-        return ( 
-            new_king_freedom != 1,
-            target_score,
+        pressure_points -= {piece: new_threats}
+        pressure_points += {piece: current_threats}
+        return (
             position_threatened, 
             move_threatened, 
+            target_score,
             can_check * (current_king_freedom - new_king_freedom ), 
             move_score - position_score,  
-            (current_king_freedom - new_king_freedom ), 
+            (current_king_freedom -new_king_freedom ), 
             move_score, 
             piece_score, 
             new_king_freedom

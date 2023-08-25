@@ -1,5 +1,6 @@
 from models.AI.greedy import GreedyAI, Threats
 from models.pieces.king import King
+from models.pieces.knight import Knight
 from models.pieces.queen import Queen
 from models.pieces.piece import PiecesContainer
 from models.pieces.bishop import Bishop
@@ -39,4 +40,19 @@ def test_king_blocked_by_own():
     freedom = ai.king_freedom(king, threats, board.pieces)
     assert(freedom == 0)
     assert(board.check_for_endgame(False))
-    
+
+def test_position_3():
+    king = King(3,7)
+    board = Board([Queen(4,5,), Rook(0,0), Knight(3,5,white=False)])
+    ai = GreedyAI(False)
+    threats = Threats(ai.get_pressure(board))
+    freedom = ai.king_freedom(king, threats, board.pieces)
+    assert(freedom == 4)
+
+def test_position_4():
+    king = King(3,7)
+    board = Board([Queen(4,5,), Rook(0,0), Knight(1,6,white=False)])
+    ai = GreedyAI(False)
+    threats = Threats(ai.get_pressure(board))
+    freedom = ai.king_freedom(king, threats, board.pieces)
+    assert(freedom == 5)
