@@ -1,4 +1,5 @@
 from controller.board import BoardController
+from models.AI.greedy import GreedyAI
 from models.AI.random import RandomAI
 from models.events import Event, EventType
 from time_func import timeit
@@ -17,7 +18,7 @@ class GameController:
         if player_type == PlayerType.HUMAN:
             return Player()
         elif player_type == PlayerType.AI:
-            return RandomAI(white=white)
+            return GreedyAI(white=white) if white else RandomAI(white=white)
     
     @property
     def current_player(self,):
