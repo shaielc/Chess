@@ -15,6 +15,10 @@ def cmp(x,y):
             return 1
         if a == b:
             continue
+    if len(x) > len(y):
+        return 1
+    if len(x) < len(y):
+        return -1
     return 0
 
 class Threats:
@@ -74,8 +78,7 @@ class GreedyAI(AI):
         elif type == PieceTypes.KING:
             return (3.5 - abs(x - 3.5)) - (7 - y if self.white else y)/2
         else:
-            direction = 1 - 2*self.white
-            return (3.5 - abs(x - (3 if self.white else 4))) + (3.5 - abs(y - (3 if self.white else 4)))
+            return (3.5 - abs(x - 3.5)) + (3.5 - abs(y - 3.5))
     
     @staticmethod
     def king_freedom(king, threats, pieces: PiecesContainer):
@@ -100,14 +103,31 @@ class GreedyAI(AI):
     def get_threatened_score(piece, move, target, threats, pressure_points):
         if move not in threats:
             return 0
-        
         if target is None and move not in pressure_points:
             return -piece.TYPE.value
+        
 
         threatning_pieces = threats[move]
-        lowet_rank_threat = min(threatning_pieces, key=lambda piece: piece.TYPE.value)
+        pressuring_pieces = pressure_points[move]
+        threatning_score = sorted({p.TYPE.value for p in threatning_pieces})
+        pressure_score = sorted({p.TYPE.value for p in pressuring_pieces})
         
-        if lowet_rank_threat.TYPE.value < piece.TYPE.value:
+        if move in pressure_points and len(threatning_pieces) == 1 and list(threatning_pieces)[0].TYPE == PieceTypes.KING:
+            return 0
+        
+        total_score = 0
+        last_value = piece.TYPE.value
+        if target is not None:
+            total_score += target.TYPE.value
+        for threat, pressure in zip(threatning_score, pressure_score):
+            total_score -= last_value
+            if total_score > 0:
+                break
+            total_score += threat
+            last_value = pressure
+        if len(threatning_score) > len(pressure_score):
+            total_score -= last_value
+        if total_score <= 0:
             return -piece.TYPE.value
         return 0
     

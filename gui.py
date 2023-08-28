@@ -39,7 +39,7 @@ def update(screen, clock : pygame.time.Clock, game: GameController, ui: GameView
     
     game.handle_next()
     ui.update(screen, game.board)
-    clock.tick(15)
+    clock.tick(10)
     pygame.display.update()
     return True
 
