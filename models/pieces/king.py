@@ -23,11 +23,6 @@ class King(Piece):
     
     def move(self, x, y):
         self.moved = True
-        
-        target_rook: Rook =self.castle.get((x,y))
-        if target_rook is not None:
-            target_rook.move( 3 if x == 2 else 5,y)
-
         return super().move(x, y)
     
     def can_castle(self, pieces: list[Piece]):
@@ -50,7 +45,7 @@ class King(Piece):
                     continue
                 if (move[0]+1,move[1]) not in r.valid_moves(pieces):
                     continue
-                self.castle[move] = r
+                self.castle[move] = (r, self.x - 1)
                 castles.append(move)
             if r.isin(7, self.y) and not r.moved:
                 move = self.x + 2, self.y
@@ -60,6 +55,6 @@ class King(Piece):
                     continue
                 if (move[0]-1,move[1]) not in r.valid_moves(pieces):
                     continue
-                self.castle[move] =  r
+                self.castle[move] =  (r, self.x + 1)
                 castles.append(move)
         return castles

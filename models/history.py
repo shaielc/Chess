@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Union
-from models.pieces.piece import Piece, PieceTypes
+from models.pieces.piece import Piece, PieceTypes, PiecesContainer
+from models.pieces.rook import Rook
 
 piece_abbreviations = {
     PieceTypes.PAWN: 'P',
@@ -19,13 +20,54 @@ class Move:
     piece: Piece
     start: tuple
     end: tuple
-    taken: Union[Piece,None]
 
     def __str__(self) -> str:
         text = piece_abbreviations[self.piece.TYPE]
-        text += "" if self.taken is None else "x"
         text += convert_pos_to_notation(*self.end)
         return text
+    
+    def apply(self, pieces: PiecesContainer):
+        pieces.move(self.piece, *self.end)
+    
+    def revert(self, pieces: PiecesContainer):
+        pieces.move(self.piece, *self.start)
+
+@dataclass
+class Take(Move):
+    taken: Piece
+
+    def apply(self, pieces: PiecesContainer):
+        pieces.remove(self.taken)
+        return super().apply(pieces)
+
+    def revert(self, pieces: PiecesContainer):
+        pieces.add(self.taken)
+        return super().revert(pieces)
+
+@dataclass
+class Promotion:
+    piece: Piece
+    promote: Piece
+
+    def apply(self, pieces: PiecesContainer):
+        pieces.remove(self.piece)
+        pieces.add(self.promote)
+    
+    def revert(self, pieces: PiecesContainer):
+        pieces.add(self.piece)
+        pieces.remove(self.promote)
+
+@dataclass
+class Castle(Move):
+    rook_move: Move
+
+    def apply(self, pieces: PiecesContainer):
+        self.rook_move.apply(pieces)
+        return super().apply(pieces)
+    
+    def revert(self, pieces: PiecesContainer):
+        self.rook_move.revert(pieces)
+        return super().apply(pieces)
 
 class History:
     def __init__(self, moves: list[Move]) -> None:

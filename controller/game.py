@@ -18,7 +18,7 @@ class GameController:
         if player_type == PlayerType.HUMAN:
             return Player()
         elif player_type == PlayerType.AI:
-            return GreedyAI(white=white) if white else GreedyAI(white=white)
+            return GreedyAI(white=white) if white else RandomAI(white=white)
     
     @property
     def current_player(self,):
@@ -30,8 +30,12 @@ class GameController:
         if self.current_player.TYPE == PlayerType.AI:
             self.current_player.set_turn()
 
-    @timeit
+    # @timeit
     def handle_event(self, event):
+        if event.event_type == EventType.PAUSE:
+            self.board.toggle_pause()
+            return
+
         if self.current_player.TYPE.value != event.source.value:
             return
         if event.event_type == EventType.BOARD:
@@ -54,16 +58,12 @@ class GameController:
         self.events.append(event)
 
     def handle_next(self,):
-        if self.board.is_finished()[0]:
-            return
-        if self.current_player.TYPE == PlayerType.HUMAN:
-            if len(self.events) > 0:
-                self.handle_event(self.events.pop())
-        elif self.current_player.TYPE == PlayerType.AI:
+        if len(self.events) > 0:
+            self.handle_event(self.events.pop())
+        if self.current_player.TYPE == PlayerType.AI:
             if self.current_player.is_done():
                 if not self.handle_event(self.current_player.get_event()):
                     self.current_player.set_turn()
             elif not self.current_player.started:
-                print("Calc", self.current_player.white)
                 self.current_player.handle_calc_event(self.board.model)
         

@@ -4,6 +4,7 @@ class EventType(Enum):
     BOARD=0
     PROMOTION=1
     MOVE=2
+    PAUSE=3
 
 class EventSourceType(Enum):
     UI=0

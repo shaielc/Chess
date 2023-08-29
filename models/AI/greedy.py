@@ -67,7 +67,7 @@ class GreedyAI(AI):
                 if comparison == 1:
                     chosen_rank = rank
                     chosen = (piece, move)
-        print(self.white, chosen_rank[-1])
+        # print(self.white, chosen_rank[-1])
         self.move(chosen)
         return True
 
@@ -100,21 +100,7 @@ class GreedyAI(AI):
         return king_freedom
 
     @staticmethod
-    def get_threatened_score(piece, move, target, threats, pressure_points):
-        if move not in threats:
-            return 0
-        if target is None and move not in pressure_points:
-            return -piece.TYPE.value
-        
-
-        threatning_pieces = threats[move]
-        pressuring_pieces = pressure_points[move]
-        threatning_score = sorted({p.TYPE.value for p in threatning_pieces})
-        pressure_score = sorted({p.TYPE.value for p in pressuring_pieces})
-        
-        if move in pressure_points and len(threatning_pieces) == 1 and list(threatning_pieces)[0].TYPE == PieceTypes.KING:
-            return 0
-        
+    def calc_trade(piece, target, threatning_score, pressure_score):
         total_score = 0
         last_value = piece.TYPE.value
         if target is not None:
@@ -127,7 +113,26 @@ class GreedyAI(AI):
             last_value = pressure
         if len(threatning_score) > len(pressure_score):
             total_score -= last_value
-        if total_score <= 0:
+        return total_score
+
+    @staticmethod
+    def get_threatened_score(piece, move, target, threats, pressure_points):
+        if move not in threats:
+            return 0
+        if target is None and move not in pressure_points:
+            return -piece.TYPE.value
+        
+
+        threatning_pieces = threats[move]
+        pressuring_pieces = pressure_points[move]
+        threatning_score = sorted({p.TYPE.value for p in threatning_pieces})
+        pressure_score = sorted({p.TYPE.value for p in pressuring_pieces})
+        
+        # if move in pressure_points and len(threatning_pieces) == 1 and list(threatning_pieces)[0].TYPE == PieceTypes.KING:
+        #     return 0
+        
+        trade_score = GreedyAI.calc_trade(piece, target, threatning_score, pressure_score)
+        if trade_score <= 0:
             return -piece.TYPE.value
         return 0
     

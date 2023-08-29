@@ -6,6 +6,7 @@ class BoardController:
     def __init__(self, model: Board) -> None:
         self.model = model
         self.selected_piece = None
+        self.paused = False
 
     def handle_location_event(self, pos, white=True):
         if self.model.finished:
@@ -73,3 +74,10 @@ class BoardController:
 
     def is_finished(self,):
         return self.model.finished, self.model.is_checked.white if self.model.is_checked is not None else None 
+    
+    def is_paused(self, ):
+        return self.paused or self.model.finished
+
+    def toggle_pause(self, ):
+        self.paused = not self.paused
+    

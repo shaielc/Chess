@@ -5,8 +5,15 @@ from controller.board import BoardController
 from controller.game import GameController
 from models.player import PlayerType
 from models.board import Board
-from view.histoty import HistoryView
+from view.history import HistoryView
 from view.promotion import PromotionView
+from threading import Thread
+from time import sleep
+
+def run_board(board: GameController):
+    while True:
+        board.handle_next()
+        sleep(0.1)
 
 pygame.font.init()
 
@@ -37,7 +44,6 @@ def update(screen, clock : pygame.time.Clock, game: GameController, ui: GameView
             event = ui.handle_click(click_pos=pygame.mouse.get_pos())
             game.add_event(event)
     
-    game.handle_next()
     ui.update(screen, game.board)
     clock.tick(10)
     pygame.display.update()
@@ -45,8 +51,10 @@ def update(screen, clock : pygame.time.Clock, game: GameController, ui: GameView
 
 
 def run_gui(width,height):
-    objs = init_gui(width, height)
+    screen,clock,game,ui = init_gui(width, height)
+    t = Thread(target=run_board, args=(game,))
+    t.start()
     while True:
-        if not update(*objs):
+        if not update(screen,clock,game,ui):
             break
     pygame.quit()

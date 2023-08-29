@@ -73,7 +73,7 @@ class Pawn(Piece):
             y = self.y
         return y == (0 if self.white else 7)
 
-    def apply_en_passant(self, target):
+    def is_en_passant(self, target):
         p = self.can_eat.get(target)
         if p is None:
             return False

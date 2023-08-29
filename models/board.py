@@ -2,7 +2,7 @@
 import time
 from functools import wraps
 from models.pieces.piece import PiecesContainer
-from models.history import History, Move
+from models.history import Castle, History, Move, Promotion, Take
 from models.pieces.bishop import Bishop
 from models.pieces.king import King
 from models.pieces.knight import Knight
@@ -31,19 +31,17 @@ class Board:
         if len(checks) > 0:
             self.is_checked = checks[0]
 
-    def check_promotion(self, pawn: Pawn):
-        return pawn.can_promote()
-
     def promote(self, piece: Piece):
         if self.need_to_promote is None:
             return False
         x = self.need_to_promote.x
         y = self.need_to_promote.y
         piece.move(x,y)
-        self.pieces.remove(self.need_to_promote)
-        self.pieces.add(piece)
+        promotion = Promotion(self.need_to_promote, piece)
+        promotion.apply(self.pieces)
+        self.moves.add_move(promotion)
         self.need_to_promote = None
-
+        
         checks = self.check_for_check()
         if len(checks) > 0:
             self.is_checked = checks[0]
@@ -202,28 +200,27 @@ class Board:
         
         if status == PositionStatus.ALLY:
             return False
-        
-        removed_piece =None
+
+        move = Move(piece, (piece.x, piece.y), target)
         if status == PositionStatus.ENEMY:
-            self.pieces.remove(target_piece)
-            removed_piece = target_piece
+            move = Take(piece, (piece.x,piece.y), target, taken=target_piece)
         elif piece.TYPE == PieceTypes.PAWN:
             other = self.en_passant(piece, target)
             if other is not None:
-                self.pieces.remove(other)
-                removed_piece = other
-        last_pos = piece.x, piece.y
+                move = Take(piece, (piece.x,piece.y), target, taken=target_piece)
         
         if piece.TYPE == PieceTypes.KING and target in piece.castle:
-            # NOTE: bad design indication
-            rook: Rook = piece.castle[target]
-            self.pieces.remove(rook)
-            self.pieces.move(piece, *target)
-            self.pieces.add(rook)
-        else:
-            self.pieces.move(piece, *target)
+            rook, pos = piece.castle[target]
+            move = Castle(piece, (piece.x,piece.y), target, Move(rook, (rook.x, rook.y), pos))
         
-        self.moves.add_move(Move(piece = piece, start=last_pos, end=target, taken=removed_piece))
+        if piece.TYPE == PieceTypes.PAWN and piece.can_promote(y=target[1]):
+            self.need_to_promote = piece
+        else:
+            self.need_to_promote = None
+            
+        
+        move.apply(self.pieces)
+        self.moves.add_move(move)
 
         checks = self.check_for_check()
         if len(checks) == 0:
@@ -236,13 +233,8 @@ class Board:
                 self.revert()
                 return False
             self.is_checked = checks[0]
-        
-        if piece.TYPE == PieceTypes.PAWN and self.check_promotion(piece):
-            self.need_to_promote = piece
-        else:
-            self.need_to_promote = None
-            self.finished = self.check_for_endgame(not piece.white)
-
+            
+        self.finished = self.check_for_endgame(not piece.white)
         self.disable_en_passant()
 
         return True
@@ -275,7 +267,7 @@ class Board:
         # self._revert_en_passant()
     
     def en_passant(self, piece: Pawn, target):
-        if piece.apply_en_passant(target):
+        if piece.is_en_passant(target):
             return piece.can_eat[target]
         return 
     

@@ -16,6 +16,8 @@ class RandomAI(AI):
             return True
         
         possible_moves = self.get_possible_moves(board)
+        if len(possible_moves) == 0:
+            return True
         piece, moves = random.sample(possible_moves.items(),1)[0]
         move = random.sample(moves,1)[0]
         self.move((piece,move))
