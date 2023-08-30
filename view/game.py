@@ -1,3 +1,4 @@
+from controller.game import GameController
 from models.events import Event, EventSourceType, EventType
 from view.board import BoardView
 from controller.board import BoardController
@@ -14,10 +15,10 @@ class GameView:
         self.history_view = history
     
     @timeit
-    def update(self, screen, board: BoardController):
-        self.board.update(screen,board)
-        self.promotion.update(screen, board.check_promotion())
-        self.history_view.update(screen, board)
+    def update(self, screen, game: GameController):
+        self.board.update(screen,game.board)
+        self.promotion.update(screen, game.board.check_promotion())
+        self.history_view.update(screen, game)
 
     def screen_to_board(self, pos):
         x,y = self.board.screen_to_game(pos)
@@ -26,13 +27,9 @@ class GameView:
         return None
     
     def screen_to_promotion(self, pos):
-        if pos not in self.promotion:
-            return None
         return self.promotion.screen_to_game(pos)
 
     def screen_to_history(self, pos):
-        if pos not in self.history_view:
-            return None
         return self.history_view.click_to_game(pos)
     
     def handle_click(self, click_pos):
@@ -42,7 +39,7 @@ class GameView:
         piece = self.screen_to_promotion(click_pos)
         if piece is not None:
             return Event(EventType.PROMOTION, EventSourceType.UI, piece)
-        pos = self.screen_to_history(click_pos)
-        if pos is not None:
-            return Event(EventType.PAUSE, EventSourceType.UI, pos)
+        event_type = self.screen_to_history(click_pos)
+        if event_type is not None:
+            return Event(event_type, EventSourceType.UI)
 

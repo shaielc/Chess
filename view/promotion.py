@@ -53,6 +53,8 @@ class PromotionView:
         return True
     
     def screen_to_game(self, pos):
+        if pos not in self:
+            return None
         x,y = pos
         x = (x-self.x)//self.height
         if x > 3:

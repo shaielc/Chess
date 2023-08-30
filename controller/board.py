@@ -1,4 +1,5 @@
 from models.board import Board
+from models.events import EventType
 from view.board import BoardView
 from models.pieces.piece import Piece
 
@@ -6,7 +7,16 @@ class BoardController:
     def __init__(self, model: Board) -> None:
         self.model = model
         self.selected_piece = None
-        self.paused = False
+    
+    def handle_event(self, event, white):
+        if event.event_type == EventType.BOARD:
+            pos = event.payload
+            return self.handle_location_event(pos, self.white)    
+        elif event.event_type == EventType.PROMOTION:
+            piece = event.payload
+            return self.promote(piece)
+        elif event.event_type == EventType.MOVE:
+            return self.handle_move_event(*event.payload, white=white)
 
     def handle_location_event(self, pos, white=True):
         if self.model.finished:
@@ -73,11 +83,7 @@ class BoardController:
         return self.model.need_to_promote
 
     def is_finished(self,):
-        return self.model.finished, self.model.is_checked.white if self.model.is_checked is not None else None 
+        return self.model.finished
     
-    def is_paused(self, ):
-        return self.paused or self.model.finished
-
-    def toggle_pause(self, ):
-        self.paused = not self.paused
-    
+    def checked(self,):
+        return self.model.is_checked.white if self.model.is_checked is not None else None 

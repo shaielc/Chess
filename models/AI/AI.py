@@ -67,5 +67,5 @@ class AI(ABC):
     def handle_calc_event(self, board: Board):
         self.calculating = True
         self.started = True
-        self.calc_move(board)
-        self.calculating = False
+        done = self.calc_move(board)
+        self.calculating = not done

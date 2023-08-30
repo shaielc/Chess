@@ -44,7 +44,7 @@ def update(screen, clock : pygame.time.Clock, game: GameController, ui: GameView
             event = ui.handle_click(click_pos=pygame.mouse.get_pos())
             game.add_event(event)
     
-    ui.update(screen, game.board)
+    ui.update(screen, game)
     clock.tick(10)
     pygame.display.update()
     return True

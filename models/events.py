@@ -5,6 +5,8 @@ class EventType(Enum):
     PROMOTION=1
     MOVE=2
     PAUSE=3
+    NEXT=4
+    PREV=5
 
 class EventSourceType(Enum):
     UI=0

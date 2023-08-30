@@ -47,7 +47,7 @@ class Board:
             self.is_checked = checks[0]
         else:
             self.is_checked = None
-        self.finished = self.check_for_endgame(not piece.white)
+        self.update_endgame(not piece.white)
 
     def check_for_check(self,):
         kings = self.pieces.filter_by_type(piece_type=PieceTypes.KING)
@@ -180,8 +180,10 @@ class Board:
         for p in player_pieces:
             if len(self.get_valid_moves(p)) > 0:
                 return False
-        
         return True
+    
+    def update_endgame(self, white):
+        self.finished = self.check_for_endgame(white)
     
     def move(self, piece: Piece, target):
         if self.finished:
@@ -233,8 +235,10 @@ class Board:
                 self.revert()
                 return False
             self.is_checked = checks[0]
-            
-        self.finished = self.check_for_endgame(not piece.white)
+        
+        if self.need_to_promote is None:
+            self.update_endgame(not piece.white)
+        
         self.disable_en_passant()
 
         return True
@@ -260,12 +264,8 @@ class Board:
 
     def revert(self,):
         m:Move = self.moves.pop()
-
-        self.pieces.move(m.piece, *m.start)
-        if m.taken is not None:
-            self.pieces.add(m.taken)
-        # self._revert_en_passant()
-    
+        m.revert(self.pieces)
+        
     def en_passant(self, piece: Pawn, target):
         if piece.is_en_passant(target):
             return piece.can_eat[target]

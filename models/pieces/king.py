@@ -45,7 +45,7 @@ class King(Piece):
                     continue
                 if (move[0]+1,move[1]) not in r.valid_moves(pieces):
                     continue
-                self.castle[move] = (r, self.x - 1)
+                self.castle[move] = (r, (self.x - 1, self.y))
                 castles.append(move)
             if r.isin(7, self.y) and not r.moved:
                 move = self.x + 2, self.y
@@ -55,6 +55,6 @@ class King(Piece):
                     continue
                 if (move[0]-1,move[1]) not in r.valid_moves(pieces):
                     continue
-                self.castle[move] =  (r, self.x + 1)
+                self.castle[move] =  (r, (self.x + 1, self.y))
                 castles.append(move)
         return castles

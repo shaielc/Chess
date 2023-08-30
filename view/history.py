@@ -1,5 +1,7 @@
 from controller.board import BoardController
+from controller.game import GameController
 from models.pieces.piece import Piece
+from models.events import EventType
 from view.piece import PieceView
 import pygame
 
@@ -64,6 +66,18 @@ class IconButton:
         self.border = 2
         self.image = pygame.transform.scale(self.buttons[icon], (self.size, self.size))
     
+    def __contains__(self, pos):
+        x,y = pos
+        if x < self.x:
+            return False
+        if x > self.x + self.width:
+            return False
+        if y < self.y:
+            return False
+        if y > self.y + self.height:
+            return False
+        return True
+    
     def update(self, screen, active):
         mx,my= pygame.mouse.get_pos()
         ax, ay = screen.get_abs_offset()
@@ -104,14 +118,27 @@ class HistoryControl:
             return False
         return True
     
-    def update(self, screen, paused):
-        self.back_button.update(screen, paused)
-        self.next_button.update(screen, paused)
+    def update(self, screen, paused, finished):
+        self.back_button.update(screen, paused or finished)
+        self.next_button.update(screen, paused or finished)
+        if finished:
+            return
         if paused:
             self.play_button.update(screen, True)
         else:
             self.pause_button.update(screen, True)
-
+    
+    def click_to_game(self, pos):
+        if pos not in self:
+            return None
+        if pos in self.back_button:
+            return EventType.PREV
+        if pos in self.next_button:
+            return EventType.NEXT
+        if pos in self.play_button:
+            return EventType.PAUSE
+        if pos in self.pause_button:
+            return EventType.PAUSE
 
 class HistoryView:
     def __init__(self, x, y, width, height, bg) -> None:
@@ -137,18 +164,16 @@ class HistoryView:
             return False
         return True
     
-    def update(self, screen, board: BoardController):
+    def update(self, screen, game: GameController):
         subsurface = screen.subsurface((self.x, self.y, self.width, self.height))
         subsurface.fill(self.bg)
-
+        board = game.board
         eaten_pieces = board.get_eaten_pieces()
         self.black_captured.update(subsurface, [p for p in eaten_pieces if not p.white])
         self.white_captured.update(subsurface, [p for p in eaten_pieces if p.white])
         self.notation_view.update(subsurface, board.get_history())
-        self.history_control.update(subsurface, board.is_paused())
+        self.history_control.update(subsurface, game.is_paused(), board.is_finished())
     
     def click_to_game(self, pos):
         pos = (pos[0] - self.x, pos[1] - self.y )
-        if pos not in self.history_control:
-            return None
-        return True
+        return self.history_control.click_to_game(pos)

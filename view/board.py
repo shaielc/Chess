@@ -65,7 +65,7 @@ class BoardView:
         self.move_pieces(screen, board.get_pieces())
         self.highlight(screen, board.get_valid_moves())
 
-        finished, checked = board.is_finished()
+        finished, checked = board.is_finished(), board.checked()
         if finished:
             self.winner_view.draw(screen, checked)
     
