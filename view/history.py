@@ -40,10 +40,9 @@ class NotationView:
             if line_width + self.font.size(move)[0] > self.width:
                 text_surf = self.font.render(text, False, (200, 200, 200))
                 screen.blit(text_surf, (self.x, self.y + lines * self.font.get_height()))
-                text = move
+                text = ""
                 lines +=1
-            else:
-                text += move + ","
+            text += move + ","
         
         text_surf = self.font.render(text, False, (200, 200, 200))
         screen.blit(text_surf, (self.x, self.y + lines * self.font.get_height()))
@@ -118,11 +117,9 @@ class HistoryControl:
             return False
         return True
     
-    def update(self, screen, paused, finished):
-        self.back_button.update(screen, paused or finished)
-        self.next_button.update(screen, paused or finished)
-        if finished:
-            return
+    def update(self, screen, paused):
+        self.back_button.update(screen, paused)
+        self.next_button.update(screen, paused)
         if paused:
             self.play_button.update(screen, True)
         else:
@@ -172,7 +169,7 @@ class HistoryView:
         self.black_captured.update(subsurface, [p for p in eaten_pieces if not p.white])
         self.white_captured.update(subsurface, [p for p in eaten_pieces if p.white])
         self.notation_view.update(subsurface, board.get_history())
-        self.history_control.update(subsurface, game.is_paused(), board.is_finished())
+        self.history_control.update(subsurface, game.is_paused())
     
     def click_to_game(self, pos):
         pos = (pos[0] - self.x, pos[1] - self.y )

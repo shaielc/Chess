@@ -5,6 +5,7 @@ if TYPE_CHECKING:
     from models.pieces.piece import Piece, PiecesContainer
 from enum import Enum
 from time_func import timeit
+import math
 
 class PositionStatus(Enum):
     OFF=0
@@ -45,6 +46,13 @@ status_check_collision = {
     PositionStatus.EMPTY: (False, True)
 }
 
+status_check_defending = {
+    PositionStatus.OFF: (False, False),
+    PositionStatus.ALLY: (True, False),
+    PositionStatus.ENEMY: (False, False),
+    PositionStatus.EMPTY: (False, True)
+}
+
 status_check_threatning = {
     PositionStatus.OFF: (False, False),
     PositionStatus.ALLY: (True,False),
@@ -61,8 +69,6 @@ def find_threats(x, y, pieces: PiecesContainer, white=None):
         test_pieces = pieces.filter_by_player(not white)
     result = get_all_moves(test_pieces, pieces)
     return [other for other in result if (x,y) in result[other]]
-
-
 
 def directions(piece: Piece, vectors, pieces: PiecesContainer, single=False, status_state=None):
     if status_state is None:
@@ -85,6 +91,11 @@ def directions(piece: Piece, vectors, pieces: PiecesContainer, single=False, sta
             break
     
     return moves
+
+def get_direction(a, b):
+    vec = (b[0]- a[0], b[1] - a[1])
+    gcd = math.gcd(*vec)
+    return (vec[0]/gcd, vec[1]/gcd)
 
 def add_vector(pos, vec):
     return pos[0] + vec[0], pos[1] + vec[1]

@@ -27,6 +27,8 @@ class AI(ABC):
         return self.started and not self.calculating
 
     def move(self, target):
+        if target is None:
+            raise ValueError("Target is None")
         self.event = Event(EventType.MOVE, EventSourceType.AI, target)
     
     def promotion(self, piece):

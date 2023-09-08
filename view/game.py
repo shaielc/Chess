@@ -16,7 +16,7 @@ class GameView:
     
     @timeit
     def update(self, screen, game: GameController):
-        self.board.update(screen,game.board)
+        self.board.update(screen, game)
         self.promotion.update(screen, game.board.check_promotion())
         self.history_view.update(screen, game)
 

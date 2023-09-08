@@ -10,15 +10,12 @@ from models.pieces.pawn import Pawn
 from models.pieces.piece import Piece, PieceTypes, DIAG_VECS, STRAIGHT_VECS, KNIGHT_MOVES
 from models.pieces.queen import Queen
 from models.pieces.rook import Rook
-from models.pieces.util import directions, find_threats, position_status, PositionStatus, status_check_collision
-import math
+from models.pieces.util import directions, find_threats, position_status, PositionStatus, status_check_collision, get_direction
+
 
 from time_func import timeit
 
-def get_direction(a, b):
-    vec = (b[0]- a[0], b[1] - a[1])
-    gcd = math.gcd(*vec)
-    return (vec[0]/gcd, vec[1]/gcd)
+
 
 class Board:
     def __init__(self, pieces=[]) -> None:
@@ -209,7 +206,7 @@ class Board:
         elif piece.TYPE == PieceTypes.PAWN:
             other = self.en_passant(piece, target)
             if other is not None:
-                move = Take(piece, (piece.x,piece.y), target, taken=target_piece)
+                move = Take(piece, (piece.x,piece.y), target, taken=other)
         
         if piece.TYPE == PieceTypes.KING and target in piece.castle:
             rook, pos = piece.castle[target]

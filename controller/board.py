@@ -1,6 +1,5 @@
 from models.board import Board
 from models.events import EventType
-from view.board import BoardView
 from models.pieces.piece import Piece
 
 class BoardController:

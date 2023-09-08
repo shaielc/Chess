@@ -1,7 +1,15 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
-from models.pieces.util import status_check_position, status_check_threatning
+from models.pieces.util import status_check_position, status_check_threatning, status_check_defending, find_threats, get_direction, directions
+
+def is_defending(piece, pieces: PiecesContainer):    
+    attackers = [ piece for piece in find_threats(piece.x, piece.y, pieces, piece.white) if piece.TYPE not in (PieceTypes.KNIGHT, PieceTypes.PAWN, PieceTypes.KING)]
+    attack_directions = {
+        attacker: get_direction((attacker.x, attacker.y), (piece.x, piece.y)) for attacker in attackers
+    }
+    defending = {attacker: directions(piece, [direction], pieces, status_state=status_check_defending) for attacker,direction in attack_directions.items()}
+    return {pieces.locations[tuple(direction)[0]]: attacker  for attacker, direction in defending.items() if len(direction) > 0}
 
 class PiecesContainer:
     def __init__(self, piece_list) -> None:

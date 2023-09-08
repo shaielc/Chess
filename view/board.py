@@ -1,4 +1,5 @@
 import pygame
+from controller.game import GameController
 from models.pieces.piece import Piece
 from view.piece import PieceView
 from pygame.rect import Rect
@@ -24,7 +25,14 @@ class WinnerView:
         
         
         screen.blit(rendered, (self.width//2 - rendered.get_width()//2, self.height//2 - rendered.get_height()//2))
-        
+    
+    def update(self, screen, game: GameController):
+        if game.is_paused():
+            return
+        board = game.board
+        finished, checked = board.is_finished(), board.checked()
+        if finished:
+            self.draw(screen, checked)
 
 class BoardView:
     WHITE = (200, 200, 200)
@@ -60,12 +68,10 @@ class BoardView:
             pv = self.pvs[p]
             pv.move(screen, p.x * self.square_size, p.y * self.square_size)
     
-    def update(self, screen, board):
+    def update(self, screen, game: GameController):
+        board = game.board
         self.draw_background(screen)
         self.move_pieces(screen, board.get_pieces())
         self.highlight(screen, board.get_valid_moves())
-
-        finished, checked = board.is_finished(), board.checked()
-        if finished:
-            self.winner_view.draw(screen, checked)
+        self.winner_view.update(screen, game)
     

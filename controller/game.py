@@ -21,7 +21,7 @@ class GameController:
         if player_type == PlayerType.HUMAN:
             return Player()
         elif player_type == PlayerType.AI:
-            return GreedyAI(white=white) if white else RandomAI(white=white)
+            return GreedyAI(white=white) if white else GreedyAI(white=white)
     
     @property
     def current_player(self,):
@@ -47,7 +47,7 @@ class GameController:
                 self.history.resume()
             return
         
-        if self.is_paused() or self.board.is_finished():
+        if self.is_paused():
             return self.history.handle_event(event,)
 
         if self.current_player.TYPE.value != event.source.value:
@@ -73,6 +73,10 @@ class GameController:
         turn = False
         if event is not None:
             turn = self.handle_event(event)
+        if self.paused:
+            return
+        if self.board.is_finished():
+            return
         if self.current_player.TYPE == PlayerType.AI:
             if not self.current_player.started:
                 self.current_player.handle_calc_event(self.board.model)

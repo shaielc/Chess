@@ -9,6 +9,8 @@ class HistoryController:
         self.index = -1
     
     def prev(self, ):
+        if len(self.board.moves) == 0:
+            return
         move: Move = self.board.moves.pop()
         self.history.add_move(move)
         move.revert(self.board.pieces)

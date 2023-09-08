@@ -3,9 +3,8 @@ from models.AI.AI import AI
 from models.board import Board
 from models.pieces.king import King
 from models.pieces.queen import Queen
-from models.pieces.piece import Piece, PieceTypes, PiecesContainer
+from models.pieces.piece import Piece, PieceTypes, PiecesContainer, is_defending
 import random
-
 
 def cmp(x,y):
     for a,b in zip(x,y):
@@ -68,6 +67,8 @@ class GreedyAI(AI):
                     chosen_rank = rank
                     chosen = (piece, move)
         # print(self.white, chosen_rank[-1])
+        if chosen is None:
+            return False
         self.move(chosen)
         return True
 
@@ -78,7 +79,7 @@ class GreedyAI(AI):
         elif type == PieceTypes.KING:
             return (3.5 - abs(x - 3.5)) - (7 - y if self.white else y)/2
         else:
-            return (3.5 - abs(x - 3.5)) + (3.5 - abs(y - 3.5))
+            return (3.5 - abs(x - 3.5)) + (3.5 - abs(y - 3.5))*2
     
     @staticmethod
     def king_freedom(king, threats, pieces: PiecesContainer):
@@ -137,7 +138,7 @@ class GreedyAI(AI):
         return 0
     
 
-    def rank(self, piece: Piece, move: tuple[int,int], threats, target: Piece, kings: dict[bool, King], pieces, pressure_points):
+    def rank(self, piece: Piece, move: tuple[int,int], threats, target: Piece, kings: dict[bool, King], pieces: PiecesContainer, pressure_points):
         new_threats = piece.threats_in_position(*move, piece.white, pieces, piece)
         if piece.TYPE == PieceTypes.PAWN and piece.can_promote(move[1]):
             new_threats = Queen.threats_in_position(*move, piece.white, pieces, piece)
@@ -148,20 +149,27 @@ class GreedyAI(AI):
         target_score = 0
         if target is not None:
             target_score = target.TYPE.value
-        if target_score < piece.TYPE.value and move in threats:
-            target_score = 0
+
         piece_score = piece.TYPE.value+1 if piece.TYPE != PieceTypes.KING else -500
         move_score = self.position_score(move[0], move[1], piece.TYPE)**2
+
+        threatened_pieces = (p for p in (pieces.locations.get(pos) for pos in current_threats) if p is not None)
+        defense_score = -sum(p.TYPE.value for p in threatened_pieces if p.white == self.white)
+        attack_score = -sum(p.TYPE.value for p in threatened_pieces if p.white != self.white)
         
         pressure_points -= {piece: current_threats}
         move_threatened = self.get_threatened_score(piece, move, target, threats, pressure_points)
-        
+        if move_threatened != 0:
+            target_score = 0
         
         position_score = self.position_score(piece.x, piece.y, piece.TYPE)**2
-        position_threatened = 0
+        position_threatened = -self.get_threatened_score(piece, (piece.x, piece.y), None, threats, pressure_points)
         position = (piece.x, piece.y)
-        if position in threats and position not in pressure_points:
-            position_threatened = piece.TYPE.value
+        if position in threats:
+            defending = is_defending(piece, pieces)
+            for defends, attacker in defending.items():
+                if defends.TYPE.value > piece.TYPE.value:
+                    position_threatened = 0
         
         can_check = (other_king.x, other_king.y) in new_threats
         
@@ -170,10 +178,12 @@ class GreedyAI(AI):
         pressure_points -= {piece: new_threats}
         pressure_points += {piece: current_threats}
         return (
-            position_threatened, 
+            position_threatened + target_score,
             move_threatened, 
             target_score,
             can_check * (current_king_freedom - new_king_freedom ), 
+            # defense_score,
+            # attack_score,
             move_score - position_score,  
             (current_king_freedom -new_king_freedom ), 
             move_score, 
