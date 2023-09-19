@@ -1,3 +1,4 @@
+[ ] Refactor greedy ai, to use comparison of threats before and after move
 [ ] fix defending functions
 [ ] Add UI test
 [ ] Add game controller tests
