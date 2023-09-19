@@ -133,7 +133,7 @@ class GreedyAI(AI):
         #     return 0
         
         trade_score = GreedyAI.calc_trade(piece, target, threatning_score, pressure_score)
-        if trade_score <= 0:
+        if trade_score < 0:
             return -piece.TYPE.value
         return 0
     
@@ -182,8 +182,8 @@ class GreedyAI(AI):
             move_threatened, 
             target_score,
             can_check * (current_king_freedom - new_king_freedom ), 
-            # defense_score,
-            # attack_score,
+            defense_score,
+            attack_score,
             move_score - position_score,  
             (current_king_freedom -new_king_freedom ), 
             move_score, 
